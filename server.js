@@ -10,7 +10,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // --- CẤU HÌNH ADMIN (Thay đổi ở đây) ---
 const ADMIN_USER = "admin"; 
-const ADMIN_PASS = "123456"; 
+const ADMIN_PASS = "chiduc0705"; 
 
 // --- CẤU HÌNH DATABASE ---
 const MONGO_URI = process.env.MONGO_URL || "mongodb://localhost:27017/key_manager";
