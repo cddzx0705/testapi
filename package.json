@@ -1,14 +1,15 @@
 {
-  "name": "key-api-cddz",
+  "name": "key-api",
   "version": "1.0.0",
-  "description": "API quản lý Key",
-  "main": "server.js",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node index.js"
   },
   "dependencies": {
     "express": "^4.18.2",
+    "mongoose": "^7.0.0",
     "cors": "^2.8.5",
-    "fs": "0.0.1-security"
+    "express-session": "^1.17.3"
   }
 }
