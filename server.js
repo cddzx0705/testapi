@@ -82,18 +82,42 @@ app.post("/api/deleteKey", auth, async (req, res) => {
 
 /* ================= API CHO TOOL (KHÔNG CẦN LOGIN) ================= */
 app.post("/checkKey", async (req, res) => {
-    const { key, deviceId } = req.body;
-    const k = await KeyModel.findOne({ key });
-    if (!k) return res.json({ success: false, message: "Key không tồn tại!" });
-    if (k.isBanned) return res.json({ success: false, message: "Key bị khóa!" });
-    if (Date.now() > k.expire) return res.json({ success: false, message: "Key hết hạn!" });
+    try {
 
-    if (!k.devices.includes(deviceId)) {
-        if (k.devices.length >= k.maxDevice) return res.json({ success: false, message: "Hết slot máy!" });
-        k.devices.push(deviceId);
-        await k.save();
+        const { key, deviceId } = req.body;
+        const now = Date.now(); // giờ server
+
+        const k = await KeyModel.findOne({ key });
+
+        if (!k)
+            return res.json({ success: false, message: "Key không tồn tại!" });
+
+        if (k.isBanned)
+            return res.json({ success: false, message: "Key bị khóa!" });
+
+        if (now > k.expire)
+            return res.json({ success: false, message: "Key hết hạn!" });
+
+        // đăng ký device
+        if (!k.devices.includes(deviceId)) {
+            if (k.devices.length >= k.maxDevice)
+                return res.json({ success: false, message: "Hết slot máy!" });
+
+            k.devices.push(deviceId);
+            await k.save();
+        }
+
+        /* ✅ TRẢ GIỜ SERVER + THỜI GIAN HẾT HẠN */
+        res.json({
+            success: true,
+            expireAt: k.expire,     // timestamp hết hạn
+            serverTime: now,        // giờ server thật
+            toggles: k.toggles
+        });
+
+    } catch (e) {
+        res.json({ success: false, message: "Server error" });
     }
-    res.json({ success: true, daysLeft: Math.ceil((k.expire - Date.now()) / 86400000), toggles: k.toggles });
 });
 
 /* ================= GIAO DIỆN ADMIN ================= */
