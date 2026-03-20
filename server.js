@@ -208,7 +208,133 @@ td,th{padding:12px;border-bottom:1px solid #1f2937}
 .expired{color:#ef4444}
 .banned{color:#f59e0b}
 </style>
+td div:hover{
+transform:scale(1.03);
+transition:.15s;
+}
+<style>
 
+*{
+box-sizing:border-box;
+}
+
+body{
+margin:0;
+font-family:Inter,Segoe UI,sans-serif;
+background:linear-gradient(135deg,#020617,#020617 40%,#020617);
+color:white;
+}
+
+/* CONTAINER */
+
+.container{
+max-width:1200px;
+margin:30px auto;
+padding:25px;
+background:rgba(15,23,42,.75);
+backdrop-filter:blur(20px);
+border-radius:16px;
+box-shadow:0 0 40px rgba(0,0,0,.6);
+}
+
+/* HEADER */
+
+h2{
+margin-top:0;
+font-weight:600;
+letter-spacing:.5px;
+}
+
+/* INPUT */
+
+input{
+background:#020617;
+border:1px solid #1e293b;
+color:white;
+padding:10px;
+border-radius:8px;
+outline:none;
+transition:.2s;
+}
+
+input:focus{
+border-color:#3b82f6;
+}
+
+/* BUTTON */
+
+button{
+border:none;
+padding:8px 14px;
+border-radius:8px;
+cursor:pointer;
+font-weight:600;
+transition:.2s;
+}
+
+button:hover{
+transform:translateY(-1px);
+}
+
+.btn-add{background:#22c55e;color:white;}
+.btn-copy{background:#3b82f6;color:white;}
+.btn-ban{background:#f59e0b;color:black;}
+.btn-del{background:#ef4444;color:white;}
+
+/* TABLE */
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:20px;
+}
+
+th{
+text-align:left;
+font-size:13px;
+color:#94a3b8;
+padding:12px;
+border-bottom:1px solid #1e293b;
+}
+
+td{
+padding:14px 12px;
+border-bottom:1px solid #0f172a;
+}
+
+tr:hover{
+background:#020617;
+}
+
+/* STATUS */
+
+.active{color:#22c55e;font-weight:600;}
+.expired{color:#ef4444;font-weight:600;}
+.banned{color:#f59e0b;font-weight:600;}
+
+/* DEVICE CHIP */
+
+.device{
+display:inline-flex;
+align-items:center;
+gap:6px;
+background:#020617;
+border:1px solid #1e293b;
+padding:4px 8px;
+border-radius:999px;
+font-size:12px;
+margin:2px;
+}
+
+/* KEY STYLE */
+
+.key{
+color:#60a5fa;
+font-weight:600;
+letter-spacing:.5px;
+}
+
+</style>
 </head>
 
 <body>
@@ -225,14 +351,48 @@ Số key <input id="a" type="number" value="1" style="width:70px">
 
 <table>
 <thead>
+return `
 <tr>
-<th>Key</th>
-<th>Hết hạn</th>
-<th>Thiết bị</th>
-<th>Note</th>
-<th>Status</th>
-<th>Action</th>
+
+<td class="key">${k.key}</td>
+
+<td>
+${new Date(k.expire).toLocaleDateString()}
+<br>
+<span style="opacity:.6;font-size:12px">
+${new Date(k.expire).toLocaleTimeString()}
+</span>
+</td>
+
+<td>
+${
+k.devices.length
+? k.devices.map(d=>`
+<span class="device" title="${d}">
+${shortID(d)}
+<button onclick="copy('${d}')"
+style="background:none;color:#94a3b8;padding:0">📋</button>
+</span>
+`).join('')
+: "-"
+}
+<div style="opacity:.6;font-size:12px;margin-top:4px">
+${k.devices.length}/${k.maxDevice}
+</div>
+</td>
+
+<td>${k.note||"-"}</td>
+
+<td class="${cls}">${st}</td>
+
+<td>
+<button class="btn-copy" onclick="copy('${k.key}')">Copy</button>
+<button class="btn-ban" onclick="toggleBan('${k.key}')">Ban</button>
+<button class="btn-del" onclick="delKey('${k.key}')">Xóa</button>
+</td>
+
 </tr>
+`;
 </thead>
 <tbody id="list"></tbody>
 </table>
@@ -240,7 +400,10 @@ Số key <input id="a" type="number" value="1" style="width:70px">
 </div>
 
 <script>
-
+function shortID(id){
+    if(!id) return "-";
+    return id.slice(0,5) + "..." + id.slice(-4);
+}
 function copy(text){
  navigator.clipboard.writeText(text);
  alert("Đã copy!");
@@ -261,7 +424,37 @@ async function load(){
 <tr>
 <td><b>\${k.key}</b></td>
 <td>\${new Date(k.expire).toLocaleString()}</td>
-<td>\${k.devices.join("<br>")||"-"}<br>\${k.devices.length}/\${k.maxDevice}</td>
+<td>
+${
+k.devices.length
+? k.devices.map(d=>`
+<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+<span title="${d}" style="
+background:#020617;
+padding:3px 8px;
+border-radius:6px;
+font-size:12px;
+">
+${shortID(d)}
+</span>
+
+<button onclick="copy('${d}')" style="
+background:#1f2937;
+color:white;
+border:none;
+border-radius:4px;
+cursor:pointer;
+padding:2px 6px;
+font-size:11px;
+">📋</button>
+</div>
+`).join('')
+: "-"
+}
+<div style="opacity:.7;font-size:12px">
+${k.devices.length}/${k.maxDevice}
+</div>
+</td>
 <td>\${k.note||"-"}</td>
 <td class="\${cls}">\${st}</td>
 <td>
