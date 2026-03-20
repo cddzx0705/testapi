@@ -174,19 +174,26 @@ app.post("/checkKey", async (req, res) => {
 /* ================= ADMIN PAGE ================= */
 
 app.get("/admin", (req, res) => {
-  if (!req.session.isAdmin) {
-    return res.send(`
-<body style="background:#0f172a;display:flex;justify-content:center;align-items:center;height:100vh;color:white;font-family:sans-serif">
-<form action="/admin/login" method="POST">
+
+if (!req.session.isAdmin) {
+return res.send(`
+<body style="background:#020617;color:white;
+display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif">
+
+<form action="/admin/login" method="POST"
+style="background:#0f172a;padding:30px;border-radius:12px">
+
 <h2>🔒 Admin Login</h2>
 <input name="user" placeholder="User"><br><br>
 <input name="pass" type="password" placeholder="Pass"><br><br>
 <button>Login</button>
+
 </form>
 </body>`);
-  }
+}
 
-  res.send(`
+res.send(`
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -194,58 +201,26 @@ app.get("/admin", (req, res) => {
 <title>CDDZ ADMIN</title>
 
 <style>
-body{margin:0;background:#0f172a;color:white;font-family:Segoe UI}
-.container{max-width:1100px;margin:auto;background:#111827;padding:20px;border-radius:12px;margin-top:20px}
-input{padding:10px;background:#020617;border:1px solid #1f2937;color:white;border-radius:6px}
-button{padding:8px 12px;border:none;border-radius:6px;font-weight:bold;cursor:pointer}
-.btn-add{background:#22c55e;color:white}
-.btn-copy{background:#3b82f6;color:white}
-.btn-ban{background:#f59e0b}
-.btn-del{background:#ef4444;color:white}
-table{width:100%;border-collapse:collapse;margin-top:20px}
-td,th{padding:12px;border-bottom:1px solid #1f2937}
-.active{color:#22c55e}
-.expired{color:#ef4444}
-.banned{color:#f59e0b}
-</style>
-td div:hover{
-transform:scale(1.03);
-transition:.15s;
-}
-<style>
 
-*{
-box-sizing:border-box;
-}
+*{box-sizing:border-box}
 
 body{
 margin:0;
 font-family:Inter,Segoe UI,sans-serif;
-background:linear-gradient(135deg,#020617,#020617 40%,#020617);
+background:#020617;
 color:white;
 }
-
-/* CONTAINER */
 
 .container{
 max-width:1200px;
 margin:30px auto;
 padding:25px;
-background:rgba(15,23,42,.75);
-backdrop-filter:blur(20px);
+background:#0f172a;
 border-radius:16px;
 box-shadow:0 0 40px rgba(0,0,0,.6);
 }
 
-/* HEADER */
-
-h2{
-margin-top:0;
-font-weight:600;
-letter-spacing:.5px;
-}
-
-/* INPUT */
+h2{margin-top:0}
 
 input{
 background:#020617;
@@ -253,15 +228,7 @@ border:1px solid #1e293b;
 color:white;
 padding:10px;
 border-radius:8px;
-outline:none;
-transition:.2s;
 }
-
-input:focus{
-border-color:#3b82f6;
-}
-
-/* BUTTON */
 
 button{
 border:none;
@@ -269,19 +236,12 @@ padding:8px 14px;
 border-radius:8px;
 cursor:pointer;
 font-weight:600;
-transition:.2s;
 }
 
-button:hover{
-transform:translateY(-1px);
-}
-
-.btn-add{background:#22c55e;color:white;}
-.btn-copy{background:#3b82f6;color:white;}
-.btn-ban{background:#f59e0b;color:black;}
-.btn-del{background:#ef4444;color:white;}
-
-/* TABLE */
+.btn-add{background:#22c55e;color:white}
+.btn-copy{background:#3b82f6;color:white}
+.btn-ban{background:#f59e0b}
+.btn-del{background:#ef4444;color:white}
 
 table{
 width:100%;
@@ -299,20 +259,14 @@ border-bottom:1px solid #1e293b;
 
 td{
 padding:14px 12px;
-border-bottom:1px solid #0f172a;
+border-bottom:1px solid #020617;
 }
 
-tr:hover{
-background:#020617;
-}
+tr:hover{background:#020617}
 
-/* STATUS */
-
-.active{color:#22c55e;font-weight:600;}
-.expired{color:#ef4444;font-weight:600;}
-.banned{color:#f59e0b;font-weight:600;}
-
-/* DEVICE CHIP */
+.active{color:#22c55e;font-weight:600}
+.expired{color:#ef4444;font-weight:600}
+.banned{color:#f59e0b;font-weight:600}
 
 .device{
 display:inline-flex;
@@ -326,12 +280,9 @@ font-size:12px;
 margin:2px;
 }
 
-/* KEY STYLE */
-
 .key{
 color:#60a5fa;
 font-weight:600;
-letter-spacing:.5px;
 }
 
 </style>
@@ -346,164 +297,145 @@ letter-spacing:.5px;
 Ngày <input id="d" type="number" value="1" style="width:60px">
 Máy <input id="m" type="number" value="1" style="width:60px">
 Số key <input id="a" type="number" value="1" style="width:70px">
-<input id="n" placeholder="Ghi chú..." style="width:250px">
+<input id="n" placeholder="Ghi chú..." style="width:260px">
+
 <button class="btn-add" onclick="add()">TẠO KEY</button>
+<a href="/admin/logout" style="float:right;color:#94a3b8">Đăng xuất</a>
 
 <table>
 <thead>
-return `
 <tr>
-
-<td class="key">${k.key}</td>
-
-<td>
-${new Date(k.expire).toLocaleDateString()}
-<br>
-<span style="opacity:.6;font-size:12px">
-${new Date(k.expire).toLocaleTimeString()}
-</span>
-</td>
-
-<td>
-${
-k.devices.length
-? k.devices.map(d=>`
-<span class="device" title="${d}">
-${shortID(d)}
-<button onclick="copy('${d}')"
-style="background:none;color:#94a3b8;padding:0">📋</button>
-</span>
-`).join('')
-: "-"
-}
-<div style="opacity:.6;font-size:12px;margin-top:4px">
-${k.devices.length}/${k.maxDevice}
-</div>
-</td>
-
-<td>${k.note||"-"}</td>
-
-<td class="${cls}">${st}</td>
-
-<td>
-<button class="btn-copy" onclick="copy('${k.key}')">Copy</button>
-<button class="btn-ban" onclick="toggleBan('${k.key}')">Ban</button>
-<button class="btn-del" onclick="delKey('${k.key}')">Xóa</button>
-</td>
-
+<th>Key</th>
+<th>Hết hạn</th>
+<th>Thiết bị</th>
+<th>Note</th>
+<th>Status</th>
+<th>Action</th>
 </tr>
-`;
 </thead>
+
 <tbody id="list"></tbody>
 </table>
 
 </div>
 
 <script>
+
+/* ===== HELPER ===== */
+
 function shortID(id){
-    if(!id) return "-";
-    return id.slice(0,5) + "..." + id.slice(-4);
+ return id.slice(0,4)+"..."+id.slice(-4);
 }
+
 function copy(text){
  navigator.clipboard.writeText(text);
- alert("Đã copy!");
 }
+
+/* ===== LOAD ===== */
 
 async function load(){
- const r=await fetch('/api/keys');
- if(r.status==401) return location.reload();
- const data=await r.json();
 
- list.innerHTML=data.map(k=>{
+const r = await fetch('/api/keys');
+if(r.status==401) return location.reload();
 
- let cls="active",st="ACTIVE";
- if(k.status==="EXPIRED"){cls="expired";st="HẾT HẠN"}
- if(k.status==="BANNED"){cls="banned";st="BANNED"}
+const data = await r.json();
 
- return \`
+list.innerHTML = data.map(k=>{
+
+let cls="active",st="ACTIVE";
+if(k.status==="EXPIRED"){cls="expired";st="HẾT HẠN"}
+if(k.status==="BANNED"){cls="banned";st="BANNED"}
+
+return \`
 <tr>
-<td><b>\${k.key}</b></td>
-<td>\${new Date(k.expire).toLocaleString()}</td>
-<td>
-${
-k.devices.length
-? k.devices.map(d=>`
-<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-<span title="${d}" style="
-background:#020617;
-padding:3px 8px;
-border-radius:6px;
-font-size:12px;
-">
-${shortID(d)}
-</span>
 
-<button onclick="copy('${d}')" style="
-background:#1f2937;
-color:white;
-border:none;
-border-radius:4px;
-cursor:pointer;
-padding:2px 6px;
-font-size:11px;
-">📋</button>
-</div>
-`).join('')
+<td class="key">\${k.key}</td>
+
+<td>
+\${new Date(k.expire).toLocaleDateString()}
+<br>
+<span style="opacity:.6;font-size:12px">
+\${new Date(k.expire).toLocaleTimeString()}
+</span>
+</td>
+
+<td>
+\${
+k.devices.length
+? k.devices.map(d=>\`
+<span class="device" title="\${d}">
+\${shortID(d)}
+<button onclick="copy('\${d}')"
+style="background:none;color:#94a3b8;padding:0">📋</button>
+</span>\`).join('')
 : "-"
 }
-<div style="opacity:.7;font-size:12px">
-${k.devices.length}/${k.maxDevice}
+<div style="opacity:.6;font-size:12px;margin-top:4px">
+\${k.devices.length}/\${k.maxDevice}
 </div>
 </td>
+
 <td>\${k.note||"-"}</td>
+
 <td class="\${cls}">\${st}</td>
+
 <td>
-<button class="btn-copy" onclick="copy('\${k.key}')">COPY</button>
-<button class="btn-ban" onclick="toggleBan('\${k.key}')">BAN</button>
-<button class="btn-del" onclick="delKey('\${k.key}')">XÓA</button>
+<button class="btn-copy" onclick="copy('\${k.key}')">Copy</button>
+<button class="btn-ban" onclick="toggleBan('\${k.key}')">Ban</button>
+<button class="btn-del" onclick="delKey('\${k.key}')">Xóa</button>
 </td>
+
 </tr>\`
- }).join('');
+}).join('');
+
 }
+
+/* ===== CREATE KEY ===== */
 
 async function add(){
- const r=await fetch('/api/createKey',{
-  method:'POST',
-  headers:{'Content-Type':'application/json'},
-  body:JSON.stringify({
-   days:d.value,
-   maxDevice:m.value,
-   note:n.value,
-   amount:a.value
-  })
- });
 
- const data=await r.json();
- alert("Tạo thành công:\\n"+data.keys.join("\\n"));
- load();
+const r = await fetch('/api/createKey',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+days:d.value,
+maxDevice:m.value,
+note:n.value,
+amount:a.value
+})
+});
+
+const data = await r.json();
+
+alert("Tạo thành công:\\n"+data.keys.join("\\n"));
+
+load();
 }
 
+/* ===== ACTION ===== */
+
 async function toggleBan(key){
- await fetch('/api/toggleBan',{
- method:'POST',
- headers:{'Content-Type':'application/json'},
- body:JSON.stringify({key})
- });
- load();
+await fetch('/api/toggleBan',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({key})
+});
+load();
 }
 
 async function delKey(key){
- if(confirm("Xóa key?")){
-  await fetch('/api/deleteKey',{
-   method:'POST',
-   headers:{'Content-Type':'application/json'},
-   body:JSON.stringify({key})
-  });
-  load();
- }
+if(confirm("Xóa key?")){
+await fetch('/api/deleteKey',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({key})
+});
+load();
+}
 }
 
 load();
+setInterval(load,10000); // auto refresh
 
 </script>
 
