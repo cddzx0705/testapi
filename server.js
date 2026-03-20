@@ -193,111 +193,74 @@ style="background:#0f172a;padding:30px;border-radius:12px">
 }
 
 res.send(`
-
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>CDDZ ADMIN</title>
+<title>CDDZ Admin</title>
 
 <style>
-#deviceModal div{
-box-shadow:0 0 25px rgba(0,0,0,.6);
-}
-
-.device-row{
-display:flex;
-justify-content:space-between;
-align-items:center;
-background:#020617;
-padding:6px 10px;
-border-radius:8px;
-margin-bottom:6px;
-font-size:13px;
-}
-*{box-sizing:border-box}
-
 body{
-margin:0;
-font-family:Inter,Segoe UI,sans-serif;
-background:#020617;
-color:white;
+    font-family:Segoe UI;
+    background:#0f172a;
+    color:white;
+    margin:0;
+    padding:20px;
 }
 
 .container{
-max-width:1200px;
-margin:30px auto;
-padding:25px;
-background:#0f172a;
-border-radius:16px;
-box-shadow:0 0 40px rgba(0,0,0,.6);
+    max-width:1100px;
+    margin:auto;
 }
 
-h2{margin-top:0}
+.card{
+    background:#1e293b;
+    padding:20px;
+    border-radius:12px;
+    margin-bottom:20px;
+}
 
 input{
-background:#020617;
-border:1px solid #1e293b;
-color:white;
-padding:10px;
-border-radius:8px;
+    padding:10px;
+    border:none;
+    border-radius:6px;
 }
 
 button{
-border:none;
-padding:8px 14px;
-border-radius:8px;
-cursor:pointer;
-font-weight:600;
+    border:none;
+    padding:8px 14px;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:bold;
 }
 
-.btn-add{background:#22c55e;color:white}
-.btn-copy{background:#3b82f6;color:white}
-.btn-ban{background:#f59e0b}
-.btn-del{background:#ef4444;color:white}
+.add{background:#22c55e;color:white;}
+.view{background:#3b82f6;color:white;}
+.del{background:#ef4444;color:white;}
 
 table{
-width:100%;
-border-collapse:collapse;
-margin-top:20px;
+    width:100%;
+    border-collapse:collapse;
 }
 
-th{
-text-align:left;
-font-size:13px;
-color:#94a3b8;
-padding:12px;
-border-bottom:1px solid #1e293b;
-}
-
-td{
-padding:14px 12px;
-border-bottom:1px solid #020617;
-}
-
-tr:hover{background:#020617}
-
-.active{color:#22c55e;font-weight:600}
-.expired{color:#ef4444;font-weight:600}
-.banned{color:#f59e0b;font-weight:600}
-
-.device{
-display:inline-flex;
-align-items:center;
-gap:6px;
-background:#020617;
-border:1px solid #1e293b;
-padding:4px 8px;
-border-radius:999px;
-font-size:12px;
-margin:2px;
+th,td{
+    padding:10px;
+    border-bottom:1px solid #334155;
+    text-align:center;
 }
 
 .key{
-color:#60a5fa;
-font-weight:600;
+    color:#38bdf8;
+    font-weight:bold;
 }
 
+.deviceBox{
+    display:none;
+    background:#020617;
+    padding:15px;
+    border-radius:10px;
+    margin-top:15px;
+}
 </style>
 </head>
 
@@ -305,201 +268,120 @@ font-weight:600;
 
 <div class="container">
 
-<h2>🚀 CDDZ KEY MANAGER</h2>
+<div class="card">
+<h2>🚀 KEY MANAGER</h2>
 
-Ngày <input id="d" type="number" value="1" style="width:60px">
-Máy <input id="m" type="number" value="1" style="width:60px">
-Số key <input id="a" type="number" value="1" style="width:70px">
-<input id="n" placeholder="Ghi chú..." style="width:260px">
+<input id="d" type="number" value="1" placeholder="Ngày">
+<input id="m" type="number" value="1" placeholder="Máy">
+<input id="n" placeholder="Ghi chú">
+<button class="add" onclick="add()">Tạo Key</button>
+</div>
 
-<button class="btn-add" onclick="add()">TẠO KEY</button>
-<a href="/admin/logout" style="float:right;color:#94a3b8">Đăng xuất</a>
-
+<div class="card">
 <table>
 <thead>
 <tr>
 <th>Key</th>
-<th>Hết hạn</th>
-<th>Thiết bị</th>
+<th>Hạn</th>
+<th>Slot</th>
 <th>Note</th>
-<th>Status</th>
-<th>Action</th>
+<th>Thiết bị</th>
+<th>Xóa</th>
 </tr>
 </thead>
 
 <tbody id="list"></tbody>
 </table>
 
+<div id="deviceBox" class="deviceBox">
+<h3>📱 Danh sách thiết bị</h3>
+<ul id="deviceList"></ul>
 </div>
-<!-- DEVICE POPUP -->
-<div id="deviceModal" style="
-display:none;
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,.7);
-justify-content:center;
-align-items:center;
-z-index:999;
-">
-
-<div style="
-background:#0f172a;
-padding:20px;
-border-radius:12px;
-width:350px;
-max-height:400px;
-overflow:auto;
-">
-
-<h3>📱 Device List</h3>
-
-<div id="deviceList"></div>
-
-<br>
-<button onclick="closeDevice()">Đóng</button>
 
 </div>
-function openDevices(devices){
-
-deviceList.innerHTML =
-devices.length
-? devices.map(d=>`
-<div class="device-row">
-<span title="${d}">
-${shortID(d)}
-</span>
-
-<button onclick="copy('${d}')">📋</button>
 </div>
-`).join('')
-: "Không có thiết bị";
 
-deviceModal.style.display="flex";
-}
-
-function closeDevice(){
-deviceModal.style.display="none";
-}
-</div>
 <script>
 
-/* ===== HELPER ===== */
-
-function shortID(id){
- return id.slice(0,4)+"..."+id.slice(-4);
-}
-
-function copy(text){
- navigator.clipboard.writeText(text);
-}
-
-/* ===== LOAD ===== */
-
 async function load(){
+    const r = await fetch('/api/keys');
+    const data = await r.json();
 
-const r = await fetch('/api/keys');
-if(r.status==401) return location.reload();
+    list.innerHTML = data.map(k=>\`
+    <tr>
+        <td class="key">\${k.key}</td>
+        <td>\${new Date(k.expire).toLocaleDateString()}</td>
+        <td>\${k.devices.length}/\${k.maxDevice}</td>
+        <td>\${k.note||'-'}</td>
 
-const data = await r.json();
+        <td>
+            <button class="view"
+            onclick="viewDevices('\${k.key}')">
+            Xem
+            </button>
+        </td>
 
-list.innerHTML = data.map(k=>{
-
-let cls="active",st="ACTIVE";
-if(k.status==="EXPIRED"){cls="expired";st="HẾT HẠN"}
-if(k.status==="BANNED"){cls="banned";st="BANNED"}
-
-return \`
-<tr>
-
-<td class="key">\${k.key}</td>
-
-<td>
-\${new Date(k.expire).toLocaleDateString()}
-<br>
-<span style="opacity:.6;font-size:12px">
-\${new Date(k.expire).toLocaleTimeString()}
-</span>
-</td>
-
-<td>
-<button class="btn-copy"
-onclick='openDevices(${JSON.stringify(k.devices)})'>
-👁 ${k.devices.length}/${k.maxDevice}
-</button>
-</td>
-</td>
-
-<td>\${k.note||"-"}</td>
-
-<td class="\${cls}">\${st}</td>
-
-<td>
-<button class="btn-copy" onclick="copy('\${k.key}')">Copy</button>
-<button class="btn-ban" onclick="toggleBan('\${k.key}')">Ban</button>
-<button class="btn-del" onclick="delKey('\${k.key}')">Xóa</button>
-</td>
-
-</tr>\`
-}).join('');
-
+        <td>
+            <button class="del"
+            onclick="delKey('\${k.key}')">
+            Xóa
+            </button>
+        </td>
+    </tr>\`).join('');
 }
-
-/* ===== CREATE KEY ===== */
 
 async function add(){
-
-const r = await fetch('/api/createKey',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({
-days:d.value,
-maxDevice:m.value,
-note:n.value,
-amount:a.value
-})
-});
-
-const data = await r.json();
-
-alert("Tạo thành công:\\n"+data.keys.join("\\n"));
-
-load();
-}
-
-/* ===== ACTION ===== */
-
-async function toggleBan(key){
-await fetch('/api/toggleBan',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({key})
-});
-load();
+    await fetch('/api/createKey',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+            days:d.value,
+            maxDevice:m.value,
+            note:n.value
+        })
+    });
+    load();
 }
 
 async function delKey(key){
-if(confirm("Xóa key?")){
-await fetch('/api/deleteKey',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({key})
-});
-load();
+    if(!confirm("Xóa key?")) return;
+
+    await fetch('/api/deleteKey',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({key})
+    });
+
+    load();
 }
+
+/* ===== XEM DEVICE ===== */
+async function viewDevices(key){
+
+    const r = await fetch('/api/getDevices',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({key})
+    });
+
+    const data = await r.json();
+
+    if(!data.success) return;
+
+    deviceBox.style.display="block";
+
+    deviceList.innerHTML =
+        data.devices.length
+        ? data.devices.map(d=>\`<li>\${d}</li>\`).join('')
+        : "<li>Chưa có thiết bị</li>";
 }
 
 load();
-setInterval(load,10000); // auto refresh
-
 </script>
 
 </body>
 </html>
 `);
-});
 
 /* ================= START ================= */
 
