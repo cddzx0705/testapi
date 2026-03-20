@@ -201,7 +201,20 @@ res.send(`
 <title>CDDZ ADMIN</title>
 
 <style>
+#deviceModal div{
+box-shadow:0 0 25px rgba(0,0,0,.6);
+}
 
+.device-row{
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:#020617;
+padding:6px 10px;
+border-radius:8px;
+margin-bottom:6px;
+font-size:13px;
+}
 *{box-sizing:border-box}
 
 body{
@@ -318,7 +331,59 @@ Số key <input id="a" type="number" value="1" style="width:70px">
 </table>
 
 </div>
+<!-- DEVICE POPUP -->
+<div id="deviceModal" style="
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,.7);
+justify-content:center;
+align-items:center;
+z-index:999;
+">
 
+<div style="
+background:#0f172a;
+padding:20px;
+border-radius:12px;
+width:350px;
+max-height:400px;
+overflow:auto;
+">
+
+<h3>📱 Device List</h3>
+
+<div id="deviceList"></div>
+
+<br>
+<button onclick="closeDevice()">Đóng</button>
+
+</div>
+function openDevices(devices){
+
+deviceList.innerHTML =
+devices.length
+? devices.map(d=>`
+<div class="device-row">
+<span title="${d}">
+${shortID(d)}
+</span>
+
+<button onclick="copy('${d}')">📋</button>
+</div>
+`).join('')
+: "Không có thiết bị";
+
+deviceModal.style.display="flex";
+}
+
+function closeDevice(){
+deviceModal.style.display="none";
+}
+</div>
 <script>
 
 /* ===== HELPER ===== */
@@ -360,19 +425,11 @@ return \`
 </td>
 
 <td>
-\${
-k.devices.length
-? k.devices.map(d=>\`
-<span class="device" title="\${d}">
-\${shortID(d)}
-<button onclick="copy('\${d}')"
-style="background:none;color:#94a3b8;padding:0">📋</button>
-</span>\`).join('')
-: "-"
-}
-<div style="opacity:.6;font-size:12px;margin-top:4px">
-\${k.devices.length}/\${k.maxDevice}
-</div>
+<button class="btn-copy"
+onclick='openDevices(${JSON.stringify(k.devices)})'>
+👁 ${k.devices.length}/${k.maxDevice}
+</button>
+</td>
 </td>
 
 <td>\${k.note||"-"}</td>
