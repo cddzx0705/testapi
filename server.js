@@ -172,143 +172,308 @@ app.post("/checkKey", async (req, res) => {
 
 /* ================= ADMIN PAGE ================= */
 app.get("/admin", (req, res) => {
-  if (!req.session.isAdmin) {
-    return res.send(`
-    <body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif">
-      <form method="POST" action="/admin/login">
-        <h2>Admin Login</h2>
-        <input name="user" placeholder="User"><br><br>
-        <input name="pass" type="password" placeholder="Pass"><br><br>
-        <button>Login</button>
-      </form>
-    </body>
-    `);
-  }
 
-  res.send(`<!DOCTYPE html>
+if (!req.session.isAdmin) {
+return res.send(`
+<body style="background:#020617;color:white;
+display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif">
+
+<form action="/admin/login" method="POST"
+style="background:#0f172a;padding:30px;border-radius:12px">
+
+<h2>🔒 Admin Login</h2>
+<input name="user" placeholder="User"><br><br>
+<input name="pass" type="password" placeholder="Pass"><br><br>
+<button>Login</button>
+
+</form>
+</body>`);
+}
+
+res.send(`
+
+<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>CDDZ PANEL</title>
+<title>CDDZ ADMIN</title>
 
 <style>
-body{background:#0f172a;color:white;font-family:Segoe UI;padding:20px}
-.card{background:#1e293b;padding:20px;border-radius:12px;margin:auto;max-width:1100px}
-table{width:100%;border-collapse:collapse}
-th,td{padding:10px;border-bottom:1px solid #334155;text-align:center}
-button{padding:6px 12px;border:none;border-radius:6px;cursor:pointer}
-.add{background:#22c55e}
-.view{background:#3b82f6}
-.del{background:#ef4444}
-.copy{background:#06b6d4}
-.deviceBox{display:none;background:#020617;padding:15px;margin-top:15px;border-radius:10px}
-.key{color:#38bdf8;font-weight:bold}
+
+*{box-sizing:border-box}
+
+body{
+margin:0;
+font-family:Inter,Segoe UI,sans-serif;
+background:#020617;
+color:white;
+}
+
+.container{
+max-width:1200px;
+margin:30px auto;
+padding:25px;
+background:#0f172a;
+border-radius:16px;
+box-shadow:0 0 40px rgba(0,0,0,.6);
+}
+
+input{
+background:#020617;
+border:1px solid #1e293b;
+color:white;
+padding:10px;
+border-radius:8px;
+}
+
+button{
+border:none;
+padding:8px 14px;
+border-radius:8px;
+cursor:pointer;
+font-weight:600;
+}
+
+.btn-add{background:#22c55e;color:white}
+.btn-copy{background:#3b82f6;color:white}
+.btn-ban{background:#f59e0b}
+.btn-del{background:#ef4444;color:white}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:20px;
+}
+
+th{
+text-align:left;
+font-size:13px;
+color:#94a3b8;
+padding:12px;
+border-bottom:1px solid #1e293b;
+}
+
+td{
+padding:14px 12px;
+border-bottom:1px solid #020617;
+}
+
+tr:hover{background:#020617}
+
+.active{color:#22c55e;font-weight:600}
+.expired{color:#ef4444;font-weight:600}
+.banned{color:#f59e0b;font-weight:600}
+
+.key{
+color:#60a5fa;
+font-weight:600;
+}
+
+/* DEVICE BOX */
+#deviceBox{
+display:none;
+margin-top:20px;
+background:#020617;
+border:1px solid #1e293b;
+padding:15px;
+border-radius:12px;
+}
+
+.device-row{
+display:flex;
+justify-content:space-between;
+padding:6px 0;
+border-bottom:1px solid #1e293b;
+font-size:13px;
+}
+
 </style>
 </head>
 
 <body>
 
-<div class="card">
+<div class="container">
 
 <h2>🚀 CDDZ KEY MANAGER</h2>
 
-<input id="d" type="number" value="1">
-<input id="m" type="number" value="1">
-<input id="n" placeholder="Note">
-<button class="add" onclick="add()">Tạo</button>
+Ngày <input id="d" type="number" value="1" style="width:60px">
+Máy <input id="m" type="number" value="1" style="width:60px">
+Số key <input id="a" type="number" value="1" style="width:70px">
+<input id="n" placeholder="Ghi chú..." style="width:260px">
+
+<button class="btn-add" onclick="add()">TẠO KEY</button>
+<a href="/admin/logout" style="float:right;color:#94a3b8">Đăng xuất</a>
 
 <table>
 <thead>
 <tr>
 <th>Key</th>
-<th>Hạn</th>
-<th>Slot</th>
+<th>Hết hạn</th>
+<th>Thiết bị</th>
 <th>Note</th>
-<th>Device</th>
-<th>Copy</th>
-<th>Xóa</th>
+<th>Status</th>
+<th>Action</th>
 </tr>
 </thead>
+
 <tbody id="list"></tbody>
 </table>
 
-<div id="deviceBox" class="deviceBox">
-<h3>📱 Devices</h3>
-<ul id="deviceList"></ul>
+<!-- DEVICE LIST -->
+<div id="deviceBox">
+<h3>📱 Danh sách thiết bị</h3>
+<div id="deviceList"></div>
 </div>
 
 </div>
 
 <script>
 
-async function load(){
- const r=await fetch('/api/keys');
- const data=await r.json();
+/* ===== HELPER ===== */
 
- list.innerHTML=data.map(k=>\`
- <tr>
-   <td class="key">\${k.key}</td>
-   <td>\${new Date(k.expire).toLocaleDateString()}</td>
-   <td>\${k.devices.length}/\${k.maxDevice}</td>
-   <td>\${k.note||'-'}</td>
-
-   <td><button class="view" onclick="viewDevices('\${k.key}')">Xem</button></td>
-
-   <td><button class="copy" onclick="copyKey('\${k.key}')">Copy</button></td>
-
-   <td><button class="del" onclick="delKey('\${k.key}')">Xóa</button></td>
- </tr>\`).join('');
+function copy(text){
+ navigator.clipboard.writeText(text);
 }
 
+function shortID(id){
+ return id.slice(0,4)+"..."+id.slice(-4);
+}
+
+/* ===== LOAD ===== */
+
+async function load(){
+
+const r = await fetch('/api/keys');
+if(r.status==401) return location.reload();
+
+const data = await r.json();
+
+list.innerHTML = data.map(k=>{
+
+let cls="active",st="ACTIVE";
+
+if(Date.now()>k.expire){
+ cls="expired";
+ st="HẾT HẠN";
+}
+
+if(k.isBanned){
+ cls="banned";
+ st="BANNED";
+}
+
+return \`
+<tr>
+
+<td class="key">\${k.key}</td>
+
+<td>
+\${new Date(k.expire).toLocaleDateString()}<br>
+<span style="opacity:.6;font-size:12px">
+\${new Date(k.expire).toLocaleTimeString()}
+</span>
+</td>
+
+<td>
+<button class="btn-copy"
+onclick="viewDevices('\${k.key}')">
+Xem (\${k.devices.length}/\${k.maxDevice})
+</button>
+</td>
+
+<td>\${k.note||"-"}</td>
+
+<td class="\${cls}">\${st}</td>
+
+<td>
+<button class="btn-copy" onclick="copy('\${k.key}')">Copy</button>
+<button class="btn-ban" onclick="toggleBan('\${k.key}')">Ban</button>
+<button class="btn-del" onclick="delKey('\${k.key}')">Xóa</button>
+</td>
+
+</tr>\`;
+}).join('');
+
+}
+
+/* ===== VIEW DEVICE ===== */
+
+async function viewDevices(key){
+
+const r = await fetch('/api/getDevices',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({key})
+});
+
+const data = await r.json();
+
+deviceBox.style.display="block";
+
+deviceList.innerHTML =
+data.devices.length
+? data.devices.map(d=>\`
+<div class="device-row">
+<span>\${shortID(d)}</span>
+<button onclick="copy('\${d}')">📋</button>
+</div>\`).join('')
+: "Chưa có thiết bị";
+
+}
+
+/* ===== CREATE KEY ===== */
+
 async function add(){
- await fetch('/api/createKey',{
-  method:'POST',
-  headers:{'Content-Type':'application/json'},
-  body:JSON.stringify({days:d.value,maxDevice:m.value,note:n.value})
- });
- load();
+
+const r = await fetch('/api/createKey',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+days:d.value,
+maxDevice:m.value,
+note:n.value,
+amount:a.value
+})
+});
+
+const data = await r.json();
+
+if(data.keys)
+alert("Tạo thành công:\\n"+data.keys.join("\\n"));
+
+load();
+}
+
+/* ===== ACTION ===== */
+
+async function toggleBan(key){
+await fetch('/api/toggleBan',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({key})
+});
+load();
 }
 
 async function delKey(key){
- if(!confirm("Xóa key?"))return;
-
- await fetch('/api/deleteKey',{
-  method:'POST',
-  headers:{'Content-Type':'application/json'},
-  body:JSON.stringify({key})
- });
-
- load();
+if(confirm("Xóa key?")){
+await fetch('/api/deleteKey',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({key})
+});
+load();
 }
-
-async function viewDevices(key){
- const r=await fetch('/api/getDevices',{
-  method:'POST',
-  headers:{'Content-Type':'application/json'},
-  body:JSON.stringify({key})
- });
-
- const data=await r.json();
-
- deviceBox.style.display="block";
-
- deviceList.innerHTML=
- data.devices.length
- ? data.devices.map(d=>\`<li>\${d}</li>\`).join('')
- : "<li>Chưa có thiết bị</li>";
-}
-
-function copyKey(k){
- navigator.clipboard.writeText(k);
- alert("Đã copy key");
 }
 
 load();
+setInterval(load,10000);
 
 </script>
 
 </body>
-</html>`);
+</html>
+`);
 });
 
 /* ================= START SERVER ================= */
